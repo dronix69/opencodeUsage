@@ -1,5 +1,7 @@
 # OpenCode Usage
 
+> [English](README.en.md) · **Español**
+
 Plugin de [DankMaterialShell](https://danklinux.com/) que muestra tu gasto local
 de [OpenCode](https://opencode.ai) en la barra y en un panel detallado: tokens y
 coste de hoy, los últimos 7 días y el mes actual, gráfico de uso reciente,
@@ -100,6 +102,10 @@ fallback integrado; se incluye español. Se aceptan contribuciones.
 - Ningún dato sale de tu equipo, salvo la consulta a `opencode.ai` para tus
   propios límites de suscripción, autenticada con tu propia clave.
 - El plugin no incrusta, transmite ni persiste ninguna credencial.
+
+## Changelog
+
+Ver [CHANGELOG.md](CHANGELOG.md).
 
 ## Licencia
 
