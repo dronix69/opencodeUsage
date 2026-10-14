@@ -1,0 +1,21 @@
+{
+  "$schema": "https://github.com/AvengeMedia/DankMaterialShell/raw/refs/heads/master/PLUGINS/plugin-schema.json",
+  "id": "opencodeUsage",
+  "name": "OpenCode Usage",
+  "description": "Show local OpenCode spending (cost and tokens) for today, this week, and this month, plus OpenCode Go subscription limits.",
+  "version": "1.1.0",
+  "author": "dronix",
+  "license": "MIT",
+  "type": "composite",
+  "capabilities": ["dankbar-widget", "daemon"],
+  "components": {
+    "daemon": "./OpencodeUsageDaemon.qml",
+    "widget": "./OpencodeUsageWidget.qml"
+  },
+  "settings": "./OpencodeUsageSettings.qml",
+  "icon": "payments",
+  "category": "monitoring",
+  "requires_dms": ">=1.5.0",
+  "dependencies": ["sqlite3", "jq", "curl"],
+  "permissions": ["settings_read", "settings_write", "process"]
+}

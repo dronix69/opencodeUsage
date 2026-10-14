@@ -1,0 +1,11 @@
+# Editor / OS
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local plugin state (never contains the API key, but keep it out)
+*_state.json

@@ -1,0 +1,140 @@
+{
+  "Loading...": {
+    "Loading...": "Cargando..."
+  },
+  "OpenCode Usage": {
+    "OpenCode Usage": "Uso de OpenCode"
+  },
+  "Today": {
+    "Today": "Hoy"
+  },
+  "This Week": {
+    "This Week": "Esta semana"
+  },
+  "This Month": {
+    "This Month": "Este mes"
+  },
+  "Input tokens: %1": {
+    "Input tokens: %1": "Tokens de entrada: %1"
+  },
+  "Output tokens: %1": {
+    "Output tokens: %1": "Tokens de salida: %1"
+  },
+  "Reasoning tokens: %1": {
+    "Reasoning tokens: %1": "Tokens de razonamiento: %1"
+  },
+  "Cache read tokens: %1": {
+    "Cache read tokens: %1": "Tokens de caché (lectura): %1"
+  },
+  "Cache write tokens: %1": {
+    "Cache write tokens: %1": "Tokens de caché (escritura): %1"
+  },
+  "%1 session": {
+    "%1 session": "%1 sesión"
+  },
+  "%1 sessions": {
+    "%1 sessions": "%1 sesiones"
+  },
+  "OpenCode database not found.": {
+    "OpenCode database not found.": "No se encontró la base de datos de OpenCode."
+  },
+  "sqlite3 is not installed.": {
+    "sqlite3 is not installed.": "sqlite3 no está instalado."
+  },
+  "jq is not installed.": {
+    "jq is not installed.": "jq no está instalado."
+  },
+  "Could not read the OpenCode database.": {
+    "Could not read the OpenCode database.": "No se pudo leer la base de datos de OpenCode."
+  },
+  "Could not read OpenCode usage.": {
+    "Could not read OpenCode usage.": "No se pudo leer el uso de OpenCode."
+  },
+  "Local OpenCode session spending, read from opencode.db.": {
+    "Local OpenCode session spending, read from opencode.db.": "Gasto local de sesiones de OpenCode, leído desde opencode.db."
+  },
+  "Refresh Interval": {
+    "Refresh Interval": "Intervalo de actualización"
+  },
+  "How often to re-read the OpenCode database.": {
+    "How often to re-read the OpenCode database.": "Cada cuánto releer la base de datos de OpenCode."
+  },
+  "Show Tokens": {
+    "Show Tokens": "Mostrar tokens"
+  },
+  "Show input, output, and reasoning token counts in the popout.": {
+    "Show input, output, and reasoning token counts in the popout.": "Mostrar los conteos de tokens de entrada, salida y razonamiento en el panel emergente."
+  },
+  "Show Session Count": {
+    "Show Session Count": "Mostrar número de sesiones"
+  },
+  "Show how many sessions fall in each window in the popout.": {
+    "Show how many sessions fall in each window in the popout.": "Mostrar cuántas sesiones caen en cada ventana en el panel emergente."
+  },
+  "Daily Cost Alert": {
+    "Daily Cost Alert": "Alerta de coste diario"
+  },
+  "Turn the bar pill red when today's cost reaches this amount. 0 disables the alert.": {
+    "Turn the bar pill red when today's cost reaches this amount. 0 disables the alert.": "Pone el indicador de la barra en rojo cuando el coste de hoy alcanza este monto. 0 desactiva la alerta."
+  },
+  "%1 provider": {
+    "%1 provider": "%1 proveedor"
+  },
+  "%1 providers": {
+    "%1 providers": "%1 proveedores"
+  },
+  "tokens this week": {
+    "tokens this week": "tokens esta semana"
+  },
+  "TOKENS · 7D": {
+    "TOKENS · 7D": "TOKENS · 7 DÍAS"
+  },
+  "COST · 7D": {
+    "COST · 7D": "COSTE · 7 DÍAS"
+  },
+  "MODELS": {
+    "MODELS": "MODELOS"
+  },
+  "7D": {
+    "7D": "7D"
+  },
+  "30D": {
+    "30D": "30D"
+  },
+  "OpenCode Go": {
+    "OpenCode Go": "OpenCode Go"
+  },
+  "monthly": {
+    "monthly": "mensual"
+  },
+  "resets in %1": {
+    "resets in %1": "reinicia en %1"
+  },
+  "OpenCode Go: No API key": {
+    "OpenCode Go: No API key": "OpenCode Go: Sin clave API"
+  },
+  "Providers": {
+    "Providers": "Proveedores"
+  },
+  "models": {
+    "models": "modelos"
+  },
+  "local data": {
+    "local data": "datos locales"
+  },
+  "Recent usage": {
+    "Recent usage": "Uso reciente"
+  },
+  "tokens": {
+    "tokens": "tokens"
+  },
+  "OpenCode Go limits": {
+    "OpenCode Go limits": "Límites de OpenCode Go"
+  },
+  "No API key": {
+    "No API key": "Sin clave API"
+  },
+  "R refresh  ·  local OpenCode database": {
+    "R refresh  ·  local OpenCode database": "Base de datos local + límites de opencode.ai"
+  }
+}
