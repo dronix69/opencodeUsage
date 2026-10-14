@@ -1,102 +1,110 @@
 # OpenCode Usage
 
-A [DankMaterialShell](https://danklinux.com/) plugin that shows your local
-[OpenCode](https://opencode.ai) spending in the bar and a detailed popout panel:
-tokens and cost for today, the last 7 days and the current month, recent usage
-chart, providers, models, and your **OpenCode Go** subscription limits.
+Plugin de [DankMaterialShell](https://danklinux.com/) que muestra tu gasto local
+de [OpenCode](https://opencode.ai) en la barra y en un panel detallado: tokens y
+coste de hoy, los últimos 7 días y el mes actual, gráfico de uso reciente,
+proveedores, modelos y los límites de tu suscripción **OpenCode Go**.
 
-Everything is read locally. No account, no telemetry, and the plugin never
-stores your API key.
+Todo se lee en local. Sin cuenta, sin telemetría y el plugin nunca guarda tu
+clave de API.
 
-![OpenCode Usage](assets/opencode-logo.svg)
+## Captura
 
-## Features
+![Captura del panel](screenshot.png)
 
-- Bar pill with 7-day token usage (turns red when today's cost passes a configurable threshold).
-- Popout panel with:
-  - Summary cards: tokens (7D), cost (7D) and number of models.
-  - Share line: today / 7D / 30D as a percentage of total usage.
-  - Provider breakdown with progress bar.
-  - Recent usage chart for the last 7 days.
-  - **OpenCode Go limits**: rolling (5 h), weekly and monthly percentages with
-    reset countdown.
-- Spanish translations included (`translations/es.json`).
+## Características
 
-## Requirements
+- Indicador en la barra con los tokens de 7 días (se pone rojo cuando el coste de
+  hoy supera el umbral configurado).
+- Panel emergente con:
+  - Tarjetas de resumen: tokens (7D), coste (7D) y número de modelos.
+  - Línea de reparto: hoy / 7D / 30D como porcentaje del total.
+  - Desglose por proveedor con barra de progreso.
+  - Gráfico de uso de los últimos 7 días.
+  - **Límites de OpenCode Go**: rolling (5 h), semanal y mensual con porcentaje
+    consumido y cuenta atrás de reinicio.
+- Traducciones al español incluidas (`translations/es.json`).
 
-| Requirement | Purpose |
+## Requisitos
+
+| Requisito | Para qué |
 | --- | --- |
-| DankMaterialShell `>= 1.5.0` | Host shell |
-| `sqlite3` | Read `opencode.db` |
-| `jq` | Parse JSON |
-| `curl` | Fetch OpenCode Go limits |
-| [OpenCode](https://opencode.ai) with local usage | Source of the data |
+| DankMaterialShell `>= 1.5.0` | Shell anfitrión |
+| `sqlite3` | Leer `opencode.db` |
+| `jq` | Parsear JSON |
+| `curl` | Consultar los límites de OpenCode Go |
+| [OpenCode](https://opencode.ai) con uso local | Origen de los datos |
 
-## Install
+## Instalación
 
-Copy this directory into your DMS plugins folder:
+Copia este directorio en la carpeta de plugins de DMS:
 
 ```sh
 cp -r opencodeUsage "${XDG_CONFIG_HOME:-$HOME/.config}/DankMaterialShell/plugins/"
 ```
 
-Then open **DankMaterialShell Settings → Plugins** and enable **OpenCode Usage**.
-Add the widget to a bar from the bar configuration.
+Después abre **DankMaterialShell Settings → Plugins** y activa **OpenCode Usage**.
+Añade el widget a una barra desde la configuración de barras.
 
-## Data sources
+## Fuentes de datos
 
-The plugin reads two local files, both owned by the OpenCode CLI:
+El plugin lee dos archivos locales, ambos del CLI de OpenCode:
 
-| Data | Source |
+| Dato | Origen |
 | --- | --- |
-| Tokens, cost, chart, providers, models | `~/.local/share/opencode/opencode.db` (read-only) |
-| OpenCode Go limits | `~/.local/share/opencode/auth.json` → `https://opencode.ai/zen/go/v1/usage` |
+| Tokens, coste, gráfico, proveedores, modelos | `~/.local/share/opencode/opencode.db` (solo lectura) |
+| Límites de OpenCode Go | `~/.local/share/opencode/auth.json` → `https://opencode.ai/zen/go/v1/usage` |
 
-- The database is opened in read-only mode and never modified.
-- Usage windows are computed from each assistant message timestamp, so a session
-  that spans several days is attributed to the day the tokens were spent.
-- Cache read/write tokens are included in the totals.
-- The API key is read at fetch time and passed through a temporary file with
-  `0600` permissions that is removed immediately. It is never logged, stored, or
-  committed.
+- La base de datos se abre en modo solo lectura y nunca se modifica.
+- Las ventanas se calculan con el timestamp de cada mensaje del asistente, así
+  que una sesión que dura varios días se atribuye al día en que se gastaron los
+  tokens.
+- Se incluyen los tokens de caché (lectura y escritura) en los totales.
+- La clave de API se lee en cada consulta y se pasa mediante un archivo temporal
+  con permisos `0600` que se elimina de inmediato. Nunca se registra, se guarda
+  ni se sube al repositorio.
 
-Override the data directory with `OPENCODE_DATA_DIR` if your OpenCode install
-lives elsewhere.
+Puedes cambiar el directorio de datos con `OPENCODE_DATA_DIR` si tu instalación
+de OpenCode está en otro sitio.
 
-## How it works
+## Funcionamiento
 
 ```text
 opencode CLI ──► opencode.db ──┐
-                               ├──► fetch-usage.sh ──JSON──► plugin state ──► widget
-auth.json ──► opencode.ai API ─┘
+                               ├──► fetch-usage.sh ──JSON──► estado del plugin ──► widget
+auth.json ──► API de opencode.ai ─┘
 ```
 
-1. The daemon runs `fetch-usage.sh` every `refreshInterval` seconds.
-2. The script queries the database and (when a key exists) the OpenCode Go
-   usage endpoint, then writes a single JSON object to the plugin state.
-3. The widget renders that state. If there is no API key or the network is
-   unavailable, it falls back to local data and shows `No API key`.
+1. El daemon ejecuta `fetch-usage.sh` cada `refreshInterval` segundos.
+2. El script consulta la base de datos y (si hay clave) el endpoint de uso de
+   OpenCode Go, y escribe un único objeto JSON en el estado del plugin.
+3. El widget dibuja ese estado. Si no hay clave o no hay red, cae en los datos
+   locales y muestra `No API key`.
 
-## Settings
+## Ajustes
 
-| Setting | Default | Description |
+| Ajuste | Por defecto | Descripción |
 | --- | --- | --- |
-| Refresh Interval | `60` | How often to re-read the database (15–300 s) |
-| Show Tokens | `true` | Show input/output/reasoning/cache token counts |
-| Show Session Count | `true` | Show session counts per window |
-| Daily Cost Alert | `0` | Turn the bar pill red when today's cost reaches this amount (`0` disables) |
+| Refresh Interval | `60` | Cada cuánto releer la base de datos (15–300 s) |
+| Show Tokens | `true` | Mostrar conteos de tokens de entrada/salida/razonamiento/caché |
+| Show Session Count | `true` | Mostrar el número de sesiones por ventana |
+| Daily Cost Alert | `0` | Poner el indicador en rojo cuando el coste de hoy llegue a este monto (`0` desactiva) |
 
-## Translations
+## Traducciones
 
-UI strings live in `translations/<locale>.json`. English is the built-in
-fallback; a Spanish translation is included. Contributions welcome.
+Los textos de la interfaz viven en `translations/<locale>.json`. El inglés es el
+fallback integrado; se incluye español. Se aceptan contribuciones.
 
-## Privacy
+## Privacidad
 
-- No data leaves your machine except the request to `opencode.ai` for your own
-  subscription limits, authenticated with your own key.
-- The plugin does not embed, transmit or persist any credential.
+- Ningún dato sale de tu equipo, salvo la consulta a `opencode.ai` para tus
+  propios límites de suscripción, autenticada con tu propia clave.
+- El plugin no incrusta, transmite ni persiste ninguna credencial.
 
-## License
+## Licencia
 
-MIT — see [LICENSE](LICENSE).
+MIT — ver [LICENSE](LICENSE).
+
+## Autor
+
+Daniel Ferrada.

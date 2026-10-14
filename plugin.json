@@ -4,7 +4,7 @@
   "name": "OpenCode Usage",
   "description": "Show local OpenCode spending (cost and tokens) for today, this week, and this month, plus OpenCode Go subscription limits.",
   "version": "1.1.0",
-  "author": "dronix",
+  "author": "Daniel Ferrada",
   "license": "MIT",
   "type": "composite",
   "capabilities": ["dankbar-widget", "daemon"],
