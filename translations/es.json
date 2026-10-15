@@ -110,6 +110,9 @@
   "resets in %1": {
     "resets in %1": "reinicia en %1"
   },
+  "%1 Go tokens in the last 5h (local)": {
+    "%1 Go tokens in the last 5h (local)": "%1 tokens Go en las últimas 5 h (local)"
+  },
   "OpenCode Go: No API key": {
     "OpenCode Go: No API key": "OpenCode Go: Sin clave API"
   },

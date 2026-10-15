@@ -16,15 +16,16 @@ clave de API.
 
 ## Características
 
-- Indicador en la barra con los tokens de 7 días (se pone rojo cuando el coste de
+- Indicador en la barra con los tokens de hoy (se pone rojo cuando el coste de
   hoy supera el umbral configurado).
 - Panel emergente con:
   - Tarjetas de resumen: tokens (7D), coste (7D) y número de modelos.
   - Línea de reparto: hoy / 7D / 30D como porcentaje del total.
   - Desglose por proveedor con barra de progreso.
-  - Gráfico de uso de los últimos 7 días.
+  - Gráfico de uso de los últimos 7 días con detalle por día al pasar el cursor.
   - **Límites de OpenCode Go**: rolling (5 h), semanal y mensual con porcentaje
-    consumido y cuenta atrás de reinicio.
+    consumido y cuenta atrás de reinicio; junto al rolling se muestra el conteo
+    local de tokens Go de las últimas 5 horas.
 - Traducciones al español incluidas (`translations/es.json`).
 
 ## Requisitos

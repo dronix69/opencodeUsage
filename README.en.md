@@ -17,15 +17,16 @@ stores your API key.
 
 ## Features
 
-- Bar pill with 7-day token usage (turns red when today's cost passes a
+- Bar pill with today's token usage (turns red when today's cost passes a
   configurable threshold).
 - Popout panel with:
   - Summary cards: tokens (7D), cost (7D) and number of models.
   - Share line: today / 7D / 30D as a percentage of total usage.
   - Provider breakdown with progress bar.
-  - Recent usage chart for the last 7 days.
+  - Recent usage chart for the last 7 days with per-day hover details.
   - **OpenCode Go limits**: rolling (5 h), weekly and monthly percentages with a
-    reset countdown.
+    reset countdown; the rolling limit also shows locally recorded Go tokens for
+    the last 5 hours.
 - Spanish translations included (`translations/es.json`).
 
 ## Requirements

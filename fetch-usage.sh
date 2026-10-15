@@ -183,6 +183,22 @@ WHERE json_extract(data, '\$.role') = 'assistant'
 " 2>/dev/null)
 models_count=$(num "$models_count")
 
+# Local OpenCode Go tokens in the same rolling 5-hour window as the quota API.
+tokens_5h=$(sqlite3 -readonly -cmd '.timeout 2000' "$db" "
+SELECT coalesce(sum(
+    coalesce(json_extract(data, '\$.tokens.input'), 0) +
+    coalesce(json_extract(data, '\$.tokens.output'), 0) +
+    coalesce(json_extract(data, '\$.tokens.reasoning'), 0) +
+    coalesce(json_extract(data, '\$.tokens.cache.read'), 0) +
+    coalesce(json_extract(data, '\$.tokens.cache.write'), 0)
+), 0)
+FROM message
+WHERE json_extract(data, '\$.role') = 'assistant'
+  AND json_extract(data, '\$.providerID') = 'opencode-go'
+  AND time_created >= CAST(strftime('%s', 'now', '-5 hours') AS INTEGER) * 1000
+" 2>/dev/null)
+tokens_5h=$(num "$tokens_5h")
+
 # OpenCode Go subscription limits, from the API using the local auth.json key.
 limits_json=$(fetch_go_limits)
 [ -n "$limits_json" ] || limits_json='{"available":false,"reason":"error"}'
@@ -193,6 +209,7 @@ jq -cn --argjson now "$now" \
     --argjson mc "$m_cost" --argjson mi "$m_in" --argjson mo "$m_out" --argjson mr "$m_re" --argjson mcr "$m_cr" --argjson mcw "$m_cw" --argjson mn "$m_n" \
     --argjson ai "$a_in" --argjson ao "$a_out" --argjson ar "$a_re" --argjson acr "$a_cr" --argjson acw "$a_cw" \
     --argjson daily "$daily_json" --argjson providers "$providers_json" --argjson models "$models_count" \
+    --argjson tokens5h "$tokens_5h" \
     --argjson limits "$limits_json" \
     '{
         status: "ok",
@@ -201,6 +218,7 @@ jq -cn --argjson now "$now" \
         recent_usage: $daily,
         providers: $providers,
         models: $models,
+        tokens_last_5h: $tokens5h,
         limits: $limits,
         windows: {
             today: {

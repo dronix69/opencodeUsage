@@ -184,8 +184,8 @@ PluginComponent {
     }
 
     function pillText() {
-        var week = windowData("week")
-        return week ? fmtTokens(tokensTotal(week)) : "-"
+        var today = windowData("today")
+        return today ? fmtTokens(tokensTotal(today)) : "-"
     }
 
     readonly property real barTextSize: Theme.barTextSize(barThickness, barConfig?.fontScale, barConfig?.maximizeWidgetText)
@@ -482,63 +482,131 @@ PluginComponent {
                     font.weight: Font.Bold
                 }
 
-                Canvas {
-                    id: usageChart
+                Item {
+                    id: chartArea
                     width: parent.width
                     height: 112
-                    property var chartData: root.recentUsage()
+                    property int hoveredIndex: -1
+                    onHoveredIndexChanged: usageChart.requestPaint()
 
-                    onChartDataChanged: requestPaint()
-                    onWidthChanged: requestPaint()
-                    onPaint: {
-                        var ctx = getContext("2d")
-                        ctx.clearRect(0, 0, width, height)
-                        var data = chartData || []
-                        if (data.length === 0) return
+                    Canvas {
+                        id: usageChart
+                        anchors.fill: parent
+                        property var chartData: root.recentUsage()
 
-                        var maxValue = 0
-                        for (var i = 0; i < data.length; i++)
-                            maxValue = Math.max(maxValue, Number(data[i].tokens) || 0)
-                        if (maxValue <= 0) maxValue = 1
+                        onChartDataChanged: requestPaint()
+                        onWidthChanged: requestPaint()
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.clearRect(0, 0, width, height)
+                            var data = chartData || []
+                            if (data.length === 0) return
 
-                        var left = 5
-                        var right = width - 5
-                        var top = 8
-                        var bottom = height - 8
-                        var step = data.length > 1 ? (right - left) / (data.length - 1) : 0
-                        var points = []
+                            var maxValue = 0
+                            for (var i = 0; i < data.length; i++)
+                                maxValue = Math.max(maxValue, Number(data[i].tokens) || 0)
+                            if (maxValue <= 0) maxValue = 1
 
-                        for (var p = 0; p < data.length; p++) {
-                            var x = left + step * p
-                            var y = bottom - ((Number(data[p].tokens) || 0) / maxValue) * (bottom - top)
-                            points.push({ x: x, y: y })
+                            var left = 5
+                            var right = width - 5
+                            var top = 8
+                            var bottom = height - 8
+                            var step = data.length > 1 ? (right - left) / (data.length - 1) : 0
+                            var points = []
+
+                            for (var p = 0; p < data.length; p++) {
+                                var x = left + step * p
+                                // Square-root scaling keeps low-usage days visible beside large spikes.
+                                var relativeUsage = Math.sqrt(Math.max(0, Number(data[p].tokens) || 0) / maxValue)
+                                var y = bottom - relativeUsage * (bottom - top)
+                                points.push({ x: x, y: y })
+                            }
+
+                            ctx.beginPath()
+                            ctx.moveTo(points[0].x, bottom)
+                            for (var a = 0; a < points.length; a++)
+                                ctx.lineTo(points[a].x, points[a].y)
+                            ctx.lineTo(points[points.length - 1].x, bottom)
+                            ctx.closePath()
+                            var gradient = ctx.createLinearGradient(0, top, 0, bottom)
+                            gradient.addColorStop(0, Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.35))
+                            gradient.addColorStop(1, Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.03))
+                            ctx.fillStyle = gradient
+                            ctx.fill()
+
+                            ctx.beginPath()
+                            ctx.moveTo(points[0].x, points[0].y)
+                            for (var b = 1; b < points.length; b++)
+                                ctx.lineTo(points[b].x, points[b].y)
+                            ctx.strokeStyle = Theme.surfaceText
+                            ctx.lineWidth = 2
+                            ctx.stroke()
+
+                            ctx.fillStyle = Theme.primary
+                            for (var c = 0; c < points.length; c++) {
+                                ctx.beginPath()
+                                ctx.arc(points[c].x, points[c].y, 2.5, 0, Math.PI * 2)
+                                ctx.fill()
+                            }
+
+                            if (chartArea.hoveredIndex >= 0 && chartArea.hoveredIndex < points.length) {
+                                ctx.beginPath()
+                                ctx.arc(points[chartArea.hoveredIndex].x, points[chartArea.hoveredIndex].y, 5, 0, Math.PI * 2)
+                                ctx.fillStyle = Theme.surfaceText
+                                ctx.fill()
+                                ctx.beginPath()
+                                ctx.arc(points[chartArea.hoveredIndex].x, points[chartArea.hoveredIndex].y, 3, 0, Math.PI * 2)
+                                ctx.fillStyle = Theme.primary
+                                ctx.fill()
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        id: chartMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        acceptedButtons: Qt.NoButton
+
+                        onPositionChanged: function(mouse) {
+                            var data = usageChart.chartData || []
+                            var left = 5
+                            var right = width - 5
+                            if (data.length < 2 || mouse.x < left || mouse.x > right) {
+                                chartArea.hoveredIndex = -1
+                                return
+                            }
+
+                            chartArea.hoveredIndex = Math.round(
+                                (mouse.x - left) / (right - left) * (data.length - 1))
                         }
 
-                        ctx.beginPath()
-                        ctx.moveTo(points[0].x, bottom)
-                        for (var a = 0; a < points.length; a++)
-                            ctx.lineTo(points[a].x, points[a].y)
-                        ctx.lineTo(points[points.length - 1].x, bottom)
-                        ctx.closePath()
-                        var gradient = ctx.createLinearGradient(0, top, 0, bottom)
-                        gradient.addColorStop(0, Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.35))
-                        gradient.addColorStop(1, Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.03))
-                        ctx.fillStyle = gradient
-                        ctx.fill()
+                        onExited: chartArea.hoveredIndex = -1
+                    }
 
-                        ctx.beginPath()
-                        ctx.moveTo(points[0].x, points[0].y)
-                        for (var b = 1; b < points.length; b++)
-                            ctx.lineTo(points[b].x, points[b].y)
-                        ctx.strokeStyle = Theme.surfaceText
-                        ctx.lineWidth = 2
-                        ctx.stroke()
+                    StyledRect {
+                        visible: chartArea.hoveredIndex >= 0 && chartArea.hoveredIndex < usageChart.chartData.length
+                        x: Math.max(Theme.spacingXS, Math.min(parent.width - width - Theme.spacingXS, chartMouseArea.mouseX - width / 2))
+                        y: chartMouseArea.mouseY > height + 8
+                            ? chartMouseArea.mouseY - height - 8
+                            : chartMouseArea.mouseY + 8
+                        width: tooltipText.implicitWidth + Theme.spacingS * 2
+                        height: tooltipText.implicitHeight + Theme.spacingXS * 2
+                        radius: Theme.cornerRadius
+                        color: Theme.surfaceContainerHighest
+                        z: 2
 
-                        ctx.fillStyle = Theme.primary
-                        for (var c = 0; c < points.length; c++) {
-                            ctx.beginPath()
-                            ctx.arc(points[c].x, points[c].y, 2.5, 0, Math.PI * 2)
-                            ctx.fill()
+                        StyledText {
+                            id: tooltipText
+                            anchors.centerIn: parent
+                            text: {
+                                var item = usageChart.chartData[chartArea.hoveredIndex]
+                                return item.date + " · " + root.fmtTokens(item.tokens) + " " +
+                                    I18n.trFor("opencodeUsage", "tokens")
+                            }
+                            color: Theme.surfaceText
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.weight: Font.Bold
                         }
                     }
                 }
@@ -659,6 +727,14 @@ PluginComponent {
                                 StyledText {
                                     visible: root.limitsAvailable() && root.limitReset(modelData.key) !== ""
                                     text: I18n.trFor("opencodeUsage", "resets in %1").arg(root.limitReset(modelData.key))
+                                    color: Theme.surfaceVariantText
+                                    font.pixelSize: Theme.fontSizeSmall
+                                }
+
+                                StyledText {
+                                    visible: modelData.key === "rolling" && root.usageData && root.usageData.tokens_last_5h !== undefined
+                                    text: I18n.trFor("opencodeUsage", "%1 Go tokens in the last 5h (local)")
+                                        .arg(root.fmtTokens(root.usageData.tokens_last_5h))
                                     color: Theme.surfaceVariantText
                                     font.pixelSize: Theme.fontSizeSmall
                                 }

@@ -5,6 +5,18 @@ Todos los cambios relevantes de este plugin se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el versionado [Semantic Versioning](https://semver.org/lang/es/).
 
+## Sin publicar
+
+### Cambiado
+
+- El indicador de la barra muestra los tokens consumidos hoy, no el acumulado de 7 días.
+- El gráfico usa una escala de raíz cuadrada para hacer visibles los días de menor uso.
+
+### Añadido
+
+- Conteo local de tokens Go en las últimas 5 horas junto al porcentaje de la API.
+- Tooltip con fecha y tokens al pasar el cursor por cada punto del gráfico.
+
 ## 1.1.0 - 2026-10-14
 
 ### Añadido
