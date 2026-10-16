@@ -185,7 +185,10 @@ PluginComponent {
 
     function pillText() {
         var today = windowData("today")
-        return today ? fmtTokens(tokensTotal(today)) : "-"
+        if (!today) return "-"
+        var tokens = tokensTotal(today)
+        if (tokens > 0 || !limitsAvailable()) return fmtTokens(tokens)
+        return limitPercent("rolling") + "%"
     }
 
     readonly property real barTextSize: Theme.barTextSize(barThickness, barConfig?.fontScale, barConfig?.maximizeWidgetText)
