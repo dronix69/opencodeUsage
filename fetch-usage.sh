@@ -55,6 +55,23 @@ fetch_go_limits() {
 command -v sqlite3 >/dev/null 2>&1 || fail no_sqlite "sqlite3 is not installed."
 command -v jq >/dev/null 2>&1 || fail no_jq "jq is not installed."
 
+# OpenCode migrated to the session_v2 schema: new messages are written to
+# session_message (role lives in the type column, tokens under model.*), and
+# the legacy message table stops receiving writes. Fall back to the legacy
+# table on databases that have not been migrated yet.
+msg_table="message"
+role_filter="json_extract(data, '\$.role') = 'assistant'"
+provider_expr="json_extract(data, '\$.providerID')"
+model_expr="json_extract(data, '\$.modelID')"
+schema_v2=$(sqlite3 -readonly -cmd '.timeout 2000' "$db" \
+    "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'session_message';" 2>/dev/null)
+if [ "${schema_v2:-0}" = "1" ]; then
+    msg_table="session_message"
+    role_filter="type = 'assistant'"
+    provider_expr="json_extract(data, '\$.model.providerID')"
+    model_expr="json_extract(data, '\$.model.id')"
+fi
+
 row=$(sqlite3 -readonly -cmd '.timeout 2000' "$db" "
 WITH w AS (
     SELECT
@@ -72,8 +89,8 @@ m AS (
         coalesce(json_extract(data, '\$.tokens.reasoning'), 0) AS tre,
         coalesce(json_extract(data, '\$.tokens.cache.read'), 0) AS tcr,
         coalesce(json_extract(data, '\$.tokens.cache.write'), 0) AS tcw
-    FROM message
-    WHERE json_extract(data, '\$.role') = 'assistant'
+    FROM $msg_table
+    WHERE $role_filter
 )
 SELECT
     coalesce(round(sum(CASE WHEN m.time_created >= w.today THEN m.cost END), 4), 0),
@@ -136,8 +153,8 @@ usage AS (
             coalesce(json_extract(data, '\$.tokens.cache.read'), 0) +
             coalesce(json_extract(data, '\$.tokens.cache.write'), 0)
         ), 0) AS tokens
-    FROM message
-    WHERE json_extract(data, '\$.role') = 'assistant'
+    FROM $msg_table
+    WHERE $role_filter
     GROUP BY day
 )
 SELECT coalesce(json_group_array(json_object(
@@ -158,7 +175,7 @@ WITH bounds AS (
 ),
 providers AS (
     SELECT
-        coalesce(json_extract(data, '\$.providerID'), 'local') AS name,
+        coalesce($provider_expr, 'local') AS name,
         coalesce(sum(
             coalesce(json_extract(data, '\$.tokens.input'), 0) +
             coalesce(json_extract(data, '\$.tokens.output'), 0) +
@@ -166,9 +183,9 @@ providers AS (
             coalesce(json_extract(data, '\$.tokens.cache.read'), 0) +
             coalesce(json_extract(data, '\$.tokens.cache.write'), 0)
         ), 0) AS tokens,
-        count(DISTINCT json_extract(data, '\$.modelID')) AS models
-    FROM message, bounds
-    WHERE json_extract(data, '\$.role') = 'assistant' AND time_created >= bounds.since
+        count(DISTINCT $model_expr) AS models
+    FROM $msg_table, bounds
+    WHERE $role_filter AND time_created >= bounds.since
     GROUP BY name
 )
 SELECT coalesce(json_group_array(json_object('name', name, 'tokens', tokens, 'models', models)), '[]') FROM providers
@@ -176,9 +193,9 @@ SELECT coalesce(json_group_array(json_object('name', name, 'tokens', tokens, 'mo
 [ -n "$providers_json" ] || providers_json='[]'
 
 models_count=$(sqlite3 -readonly -cmd '.timeout 2000' "$db" "
-SELECT count(DISTINCT json_extract(data, '\$.modelID'))
-FROM message
-WHERE json_extract(data, '\$.role') = 'assistant'
+SELECT count(DISTINCT $model_expr)
+FROM $msg_table
+WHERE $role_filter
   AND time_created >= CAST(strftime('%s', 'now', 'localtime', '-6 days', 'start of day') AS INTEGER) * 1000
 " 2>/dev/null)
 models_count=$(num "$models_count")
@@ -192,9 +209,9 @@ SELECT coalesce(sum(
     coalesce(json_extract(data, '\$.tokens.cache.read'), 0) +
     coalesce(json_extract(data, '\$.tokens.cache.write'), 0)
 ), 0)
-FROM message
-WHERE json_extract(data, '\$.role') = 'assistant'
-  AND json_extract(data, '\$.providerID') = 'opencode-go'
+FROM $msg_table
+WHERE $role_filter
+  AND $provider_expr = 'opencode-go'
   AND time_created >= CAST(strftime('%s', 'now', '-5 hours') AS INTEGER) * 1000
 " 2>/dev/null)
 tokens_5h=$(num "$tokens_5h")

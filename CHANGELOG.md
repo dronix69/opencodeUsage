@@ -7,6 +7,13 @@ y el versionado [Semantic Versioning](https://semver.org/lang/es/).
 
 ## Sin publicar
 
+### Corregido
+
+- Lectura de `opencode.db` compatible con el esquema nuevo de OpenCode: los
+  tokens se consultan ahora en `session_message` (la tabla `message` dejó de
+  recibir escrituras tras la migración), por lo que el gráfico dejó de
+  registrar el uso de los últimos días.
+
 ### Cambiado
 
 - El indicador de la barra muestra los tokens consumidos hoy, no el acumulado de 7 días.
